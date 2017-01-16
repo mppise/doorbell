@@ -1,0 +1,23 @@
+{
+  "name": "doorbell",
+  "version": "0.0.1",
+  "description": "Face recognizing doorbell",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mppise/doorbell.git"
+  },
+  "keywords": [
+    "face-recognition",
+    "doorbell"
+  ],
+  "author": "Mangesh Pise",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mppise/doorbell/issues"
+  },
+  "homepage": "https://github.com/mppise/doorbell#readme"
+}
