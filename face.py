@@ -4,7 +4,6 @@ import cv2,time,os
 # -- Configurations -- #
 HAR_CLAS = "haarcascade_frontalface_default.xml"
 IMG_SIZE = 95
-IMG_QUAL = 75
 
 face_cascade = cv2.CascadeClassifier(HAR_CLAS)
 cam = cv2.VideoCapture(0)
@@ -19,43 +18,34 @@ while(True):
         print("Error: Camera is possibly disconnected or busy")
         break
     else:
+        #- Skip this loop if already working on a face
         if(working > 0):
             cv2.imshow("Main Door", img)
             if(cv2.waitKey(250) & 0xFF == ord('q')):
                 working = 0
                 print("Face tracking resumed")
                 continue
-            working = working -1
-            if(working % 50 == 0):
-                print("Face tracking is paused ...")
+            working = working - 1
+            if(working % 40 == 0):
+                print("Face tracking is paused ...(for "+str(int(working / 4))+" seconds more)")
             continue
-        
-        imgquality = int(cv2.Laplacian(img, cv2.CV_64F).var())
 
         #- Get Faces in the crowd, if any
         faces = face_cascade.detectMultiScale(img, 1.6, 6)
-        
         if(len(faces)!=0):
-            peeps = "person"
-            if(len(faces)>1):
-                peeps = "people"
-            message = "Psst! "+str(len(faces))+" "+ peeps +" at the door!"
-            print(message)
+            print("Psst! "+str(len(faces))+" peep(s) at the door!")
             for (x,y,w,h) in faces:
-                print("Face#: "+str(facenum+1)+" of "+str(len(faces))+" | Width: "+str(w)+" | Quality: "+str(imgquality)+"")
+                print("Face#: "+str(facenum+1)+" of "+str(len(faces))+" | Width: "+str(w)+"")
                 #- Disregard smaller sizes
                 if(w < IMG_SIZE):
                     cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255), 2)
                 else:
-                    #- Checking quality of faces
-                    if(imgquality < IMG_QUAL):
-                        cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,255), 2)
-                    else:
-                        imgcrop = img[y-(h*0.5):(y+h+(h*0.5)), x-(w*0.5):(x+w+(w*0.5))]
-                        #- Save sharpened image
-                        cv2.imwrite('/home/pi/apps/clicks/face_'+str(facenum)+'.jpg', cv2.filter2D( imgcrop, -1, np.array([[0,0,0], [0,1,0], [0,0,0]]) ))
-                        cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0), 4)
-                        facenum = facenum+1
+                    imgcrop = img[y-(h*0.5):(y+h+(h*0.5)), x-(w*0.5):(x+w+(w*0.5))]
+                    #- Save sharpened image
+                    imgsave = cv2.filter2D(imgcrop, -1, np.array([[0,0,0], [0,1,0], [0,0,0]]))
+                    cv2.imwrite('/home/pi/apps/clicks/face_'+str(facenum)+'.jpg', imgsave)
+                    cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0), 4)
+                    facenum = facenum+1
             cv2.imshow("Main Door", img)
             cv2.waitKey(5000)
         
