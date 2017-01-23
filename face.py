@@ -2,13 +2,15 @@ import numpy as np
 import cv2,time,os
 
 # -- Configurations -- #
+SCREEN_W = 960
+SCREEN_H = 720
 HAR_CLAS = "haarcascade_frontalface_default.xml"
 IMG_SIZE = 95
 
 face_cascade = cv2.CascadeClassifier(HAR_CLAS)
 cam = cv2.VideoCapture(0)
-cam.set(3, 960) # Width
-cam.set(4, 720) # Height
+cam.set(3, SCREEN_W) # Width
+cam.set(4, SCREEN_H) # Height
 
 facenum = 0
 working = 0
@@ -40,14 +42,31 @@ while(True):
                 if(w < IMG_SIZE):
                     cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255), 2)
                 else:
-                    imgcrop = img[y-(h*0.5):(y+h+(h*0.5)), x-(w*0.5):(x+w+(w*0.5))]
-                    #- Save sharpened image
+                    #- get image dimensions (with padding) and ensure it does not go out of bounds                    
+                    top = y
+                    left = x
+                    height = 0
+                    width = 0
+                    if(y-(h*0.5) > 0):
+                        top = y-(h*0.5)
+                    if(x-(w*0.5) > 0):
+                        left = x-(w*0.5)
+                    if(y+h+(h*0.5) > SCREEN_H):
+                        height = SCREEN_H - y+h+(h*0.5)
+                    else:
+                        height = y+h+(h*0.5)
+                    if(x+w+(w*0.5) > SCREEN_W):
+                        width = SCREEN_W - x+w+(w*0.5)
+                    else:
+                        width = x+w+(w*0.5)
+                    imgcrop = img[top:height, left:width]
+                    #- Sharpen image
                     imgsave = cv2.filter2D(imgcrop, -1, np.array([[0,0,0], [0,1,0], [0,0,0]]))
                     cv2.imwrite('/home/pi/apps/clicks/face_'+str(facenum)+'.jpg', imgsave)
                     cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0), 4)
                     facenum = facenum+1
             cv2.imshow("Main Door", img)
-            cv2.waitKey(5000)
+            cv2.waitKey(25)
         
             if(len(faces) == facenum):
                 print("Got all faces. Uploading for identification...")
