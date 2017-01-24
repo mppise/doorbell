@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/mppise/doorbell/issues"
   },
-  "homepage": "https://github.com/mppise/doorbell#readme"
+  "homepage": "https://github.com/mppise/doorbell#readme",
+  "dependencies": {
+    "aws-sdk": "^2.7.27"
+  }
 }

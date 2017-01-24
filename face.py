@@ -4,8 +4,8 @@ import cv2,time,os
 # -- Configurations -- #
 SCREEN_W = 960
 SCREEN_H = 720
-HAR_CLAS = "haarcascade_frontalface_default.xml"
-IMG_SIZE = 95
+HAR_CLAS = "haarcascade_frontalface_alt.xml"
+IMG_SIZE = 125 # looking for 131
 
 face_cascade = cv2.CascadeClassifier(HAR_CLAS)
 cam = cv2.VideoCapture(0)
@@ -69,12 +69,13 @@ while(True):
             cv2.waitKey(25)
         
             if(len(faces) == facenum):
-                print("Got all faces. Uploading for identification...")
+                print("Got "+str(facenum)+" faces. Uploading for identification...")
                 #- Uploading to AWS for Rekognition
+                basefile = time.strftime("%Y%m%d_%H%M%S-")
+                file = []
                 for f in range(0, facenum):
-                    key = time.strftime("%Y%m%d_%H%M%S-")+str(f)+".jpg"
-                    file = "@/home/pi/apps/clicks/face_"+str(f)+".jpg"
-                    #os.system('curl -X POST https://s3.amazonaws.com/standbye -F "key='+key+'" -F "file='+file+'" -F "Content-Type=image/jpeg"')
+                    file[f] = str(basefile)+str(f)+".jpg"
+                    os.system('aws s3 cp clicks/'+file[f]+' s3://standbye --grants full=uri=http://acs.amazonaws.com/groups/global/AuthenticatedUsers')
                 os.system("omxplayer -o local /home/pi/apps/Christmas-doorbell-melody.mp3")
                 os.system("rm /home/pi/apps/clicks/*.jpg")
                 working = 240
