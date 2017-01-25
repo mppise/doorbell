@@ -36,6 +36,7 @@ while(True):
         faces = face_cascade.detectMultiScale(img, 1.6, 6)
         if(len(faces)!=0):
             print("Psst! "+str(len(faces))+" peep(s) at the door!")
+            basefile = time.strftime("%Y%m%d_%H%M%S-")
             for (x,y,w,h) in faces:
                 print("Face#: "+str(facenum+1)+" of "+str(len(faces))+" | Width: "+str(w)+"")
                 #- Disregard smaller sizes
@@ -62,7 +63,7 @@ while(True):
                     imgcrop = img[top:height, left:width]
                     #- Sharpen image
                     imgsave = cv2.filter2D(imgcrop, -1, np.array([[0,0,0], [0,1,0], [0,0,0]]))
-                    cv2.imwrite('/home/pi/apps/clicks/face_'+str(facenum)+'.jpg', imgsave)
+                    cv2.imwrite('/home/pi/apps/clicks/'+str(basefile)+str(facenum)+'.jpg', imgsave)
                     cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0), 4)
                     facenum = facenum+1
             cv2.imshow("Main Door", img)
@@ -71,11 +72,11 @@ while(True):
             if(len(faces) == facenum):
                 print("Got "+str(facenum)+" faces. Uploading for identification...")
                 #- Uploading to AWS for Rekognition
-                basefile = time.strftime("%Y%m%d_%H%M%S-")
                 file = []
                 for f in range(0, facenum):
-                    file[f] = str(basefile)+str(f)+".jpg"
-                    os.system('aws s3 cp clicks/'+file[f]+' s3://standbye --grants full=uri=http://acs.amazonaws.com/groups/global/AuthenticatedUsers')
+                    file.append(str(basefile)+str(f)+".jpg")
+                    os.system('aws s3 cp /home/pi/apps/clicks/'+file[f]+' s3://standbye --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers full=emailaddress=mppise@gmail.com')
+                    os.system('curl -X POST https://329qnpc5cj.execute-api.us-east-1.amazonaws.com/faces -H "Content-Type:application/json" --data "{\"s3file\":\"'+file[f]+'\"}"')
                 os.system("omxplayer -o local /home/pi/apps/Christmas-doorbell-melody.mp3")
                 os.system("rm /home/pi/apps/clicks/*.jpg")
                 working = 240
