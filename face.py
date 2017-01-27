@@ -77,7 +77,7 @@ while(True):
                     file.append(str(basefile)+str(f)+".jpg")
                     os.system('aws s3 cp /home/pi/apps/clicks/'+file[f]+' s3://standbye --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers full=emailaddress=mppise@gmail.com')
                 os.system("curl -X POST https://329qnpc5cj.execute-api.us-east-1.amazonaws.com/faces -H 'Content-Type:application/json' --data '{\"s3file\":\""+( ','.join(file) )+"\"}'")
-                os.system("omxplayer -o local /home/pi/apps/Christmas-doorbell-melody.mp3 &")
+                os.system("omxplayer -o local /home/pi/apps/Christmas-doorbell-melody.mp3")
                 os.system("rm /home/pi/apps/clicks/*.jpg")
                 working = 240
                 facenum = 0
