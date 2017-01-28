@@ -14,8 +14,25 @@ cam.set(4, SCREEN_H) # Height
 
 facenum = 0
 working = 0
+
+#- Rotate (http://stackoverflow.com/questions/16265673/rotate-image-by-90-180-or-270-degrees)
+def rot90(img, rotflag):
+    if rotflag == 1: # ClockWise
+        img = cv2.transpose(img)  
+        img = cv2.flip(img, 1)
+    elif rotflag == 2: # Counter-ClockWise
+        img = cv2.transpose(img)  
+        img = cv2.flip(img, 0)
+    elif rotflag ==3: # 180 flip
+        img = cv2.flip(img, -1)
+    elif rotflag != 0:
+        raise Exception("Unknown rotation flag({})".format(rotflag))
+    return img
+        
 while(True):
     ret, img = cam.read()
+    img = rot90(img, 2)
+    
     if(ret == False):
         print("Error: Camera is possibly disconnected or busy")
         break
@@ -31,7 +48,7 @@ while(True):
             if(working % 40 == 0):
                 print("Face tracking is paused ...(for "+str(int(working / 4))+" seconds more)")
             continue
-
+        
         #- Get Faces in the crowd, if any
         faces = face_cascade.detectMultiScale(img, 1.6, 6)
         if(len(faces)!=0):
