@@ -1,5 +1,5 @@
 import numpy as np
-import cv2,time,os
+import cv2,time,os,requests,json
 
 # -- Configurations -- #
 SCREEN_W = 960
@@ -31,10 +31,11 @@ def rot90(img, rotflag):
         
 while(True):
     ret, img = cam.read()
-    img = rot90(img, 2)
+    img = rot90(img, 1)
     
     if(ret == False):
         print("Error: Camera is possibly disconnected or busy")
+        cam.release()
         break
     else:
         #- Skip this loop if already working on a face
@@ -88,13 +89,27 @@ while(True):
         
             if(len(faces) == facenum):
                 print("Got "+str(facenum)+" faces. Uploading for identification...")
+                os.system("omxplayer -o local /home/pi/apps/Christmas-doorbell-melody.mp3")
                 #- Uploading to AWS for Rekognition
                 file = []
                 for f in range(0, facenum):
                     file.append(str(basefile)+str(f)+".jpg")
                     os.system('aws s3 cp /home/pi/apps/clicks/'+file[f]+' s3://standbye --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers full=emailaddress=mppise@gmail.com')
-                os.system("curl -X POST https://329qnpc5cj.execute-api.us-east-1.amazonaws.com/faces -H 'Content-Type:application/json' --data '{\"s3file\":\""+( ','.join(file) )+"\"}'")
-                os.system("omxplayer -o local /home/pi/apps/Christmas-doorbell-melody.mp3")
+                r = requests.post("https://329qnpc5cj.execute-api.us-east-1.amazonaws.com/faces", data=json.dumps({'s3file':( ",".join(file) )}), headers={'content-type': 'application/json'})
+                visitors = r.text.replace('"','').split(',')
+                print(visitors+" at the door")
+                greeting = ""
+                for v in visitors:
+                    if(v == "Someone"):
+                        continue
+                    else:
+                        greeting = greeting+v+", "
+                if(greeting == ""):
+                    os.system("omxplayer -o local /home/pi/apps/clicks/greeting_standard.mp3")
+                else:
+                    greeting = "Hello "+greeting+"! I will be right there to get you."
+                    os.system('aws polly synthesize-speech --output-format "mp3" --text "'+greeting+'" --voice-id "Raveena" /home/pi/apps/clicks/greeting.mp3')
+                    os.system("omxplayer -o local /home/pi/apps/clicks/greeting.mp3")
                 os.system("rm /home/pi/apps/clicks/*.jpg")
                 working = 240
                 facenum = 0
