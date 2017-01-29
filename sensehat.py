@@ -45,10 +45,10 @@ def showNotification(status):
 		visual = [
 		G, G, G, G, G, G, G, G,
 		G, O, O, O, O, O, O, G,
-		G, W, O, O, O, O, W, G,
-		G, 0, W, W, W, W, O, G,
-		G, 0, W, W, W, W, O, G,
-		G, W, O, O, O, O, W, G,
+		G, O, O, O, O, O, O, G,
+		G, O, O, O, O, O, O, G,
+		G, O, O, O, O, O, O, G,
+		G, O, O, O, O, O, O, G,
 		G, O, O, O, O, O, O, G,
 		G, G, G, G, G, G, G, G
 		]
