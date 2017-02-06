@@ -2,10 +2,11 @@ import numpy as np
 import cv2,time,os,requests,json
 
 # -- Configurations -- #
-SCREEN_W = 960
-SCREEN_H = 720
+SCREEN_W = 800 #960
+SCREEN_H = 600 #720
 HAR_CLAS = "haarcascade_frontalface_alt.xml"
-IMG_SIZE = 125 # looking for 131
+IMG_SIZE = 150 # looking for 154
+# IMG_SIZE = 80 # looking for 82
 time.sleep(3)
 
 face_cascade = cv2.CascadeClassifier(HAR_CLAS)
@@ -15,44 +16,31 @@ cam.set(4, SCREEN_H) # Height
 
 facenum = 0
 working = 0
-
-#- Rotate (http://stackoverflow.com/questions/16265673/rotate-image-by-90-180-or-270-degrees)
-def rot90(img, rotflag):
-    if rotflag == 1: # ClockWise
-        img = cv2.transpose(img)  
-        img = cv2.flip(img, 1)
-    elif rotflag == 2: # Counter-ClockWise
-        img = cv2.transpose(img)  
-        img = cv2.flip(img, 0)
-    elif rotflag ==3: # 180 flip
-        img = cv2.flip(img, -1)
-    elif rotflag != 0:
-        raise Exception("Unknown rotation flag({})".format(rotflag))
-    return img
         
 while(True):
     ret, img = cam.read()
-    #img = rot90(img, 3)
-    
+
     if(ret == False):
-        print("Error: Camera is possibly disconnected or busy")
-        cam.release()
+        print("Error : exiting...")
         break
-    else:
-        #- Skip this loop if already working on a face
-        if(working > 0):
-            cv2.imshow("Main Door", img)
-            if(cv2.waitKey(250) & 0xFF == ord('q')):
-                working = 0
-                print("Face tracking resumed")
-                continue
-            working = working - 1
-            if(working % 40 == 0):
-                print("Face tracking is paused ...(for "+str(int(working / 4))+" seconds more)")
+
+    if(working > 0):
+        cv2.imshow("Main Door", img)
+        if(cv2.waitKey(250) & 0xFF == ord('q')):
+            working = 0
+            print("Face tracking resumed")
             continue
+        working = working - 1
+        if(working % 40 == 0):
+            if(working == 0):
+                print("Face tracking resumed")
+            else:
+                print("Face tracking is paused ...(for "+str(int(working / 4))+" seconds more)")
+        continue
         
         #- Get Faces in the crowd, if any
-        faces = face_cascade.detectMultiScale(img, 1.6, 6)
+        imggray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(imggray, 1.06, 4)
         if(len(faces)!=0):
             print("Psst! "+str(len(faces))+" peep(s) at the door!")
             basefile = time.strftime("%Y%m%d_%H%M%S-")
@@ -83,7 +71,7 @@ while(True):
                     #- Sharpen image
                     imgsave = cv2.filter2D(imgcrop, -1, np.array([[0,0,0], [0,1,0], [0,0,0]]))
                     cv2.imwrite('/home/pi/apps/clicks/'+str(basefile)+str(facenum)+'.jpg', imgsave)
-                    cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0), 4)
+                    cv2.rectangle(img,(left,top),(left+width,top+height),(0,255,0), 4)
                     facenum = facenum+1
         
             if(len(faces) == facenum):
